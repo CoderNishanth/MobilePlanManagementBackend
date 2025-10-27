@@ -118,7 +118,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cfg = new CorsConfiguration();
         cfg.setAllowedOrigins(List.of(
-            "https://8081-fbeecedcbabbdbbdfafcfffbdacddbfcdceaaffcc.premiumproject.examly.io",
+            "https://mobileplanmanagement.web.app",
             "http://localhost:5173"
         ));
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
