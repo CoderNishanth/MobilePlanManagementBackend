@@ -20,43 +20,38 @@ import java.util.stream.Collectors;
 public class UserController {
     
     private final UserService userService;
-
+    
     /**
      * Admin/Telecom Manager: Get all users with filtering
      */
     @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN') or hasRole('TELECOM_MANAGER')")
     public ResponseEntity<?> getAllUsers(
-) {
-        try {
-            List<User> users = userService.getAllUsers();
+        @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+        @RequestParam(name = "size", required = false, defaultValue = "10") int size
+    ) {
+    try {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size);
+        org.springframework.data.domain.Page<User> usersPage = userService.getAllUsers(pageable);
 
-            // // Filter by role if provided
-            // if (role != null && !role.isEmpty()) {
-            //     User.Role userRole = User.Role.valueOf(role.toUpperCase());
-            //     users = users.stream()
-            //             .filter(user -> user.getRole() == userRole)
-            //             .collect(Collectors.toList());
-            // }
+        List<Map<String, Object>> safeUsers = usersPage.getContent().stream()
+            .map(this::createSafeUserResponse)
+            .collect(Collectors.toList());
 
-            // // Filter by service area if provided
-            // if (serviceArea != null && !serviceArea.isEmpty()) {
-            //     users = users.stream()
-            //             .filter(user -> serviceArea.equals(user.getServiceArea()))
-            //             .collect(Collectors.toList());
-            // }
+        Map<String, Object> paged = Map.of(
+            "content", safeUsers,
+            "page", usersPage.getNumber(),
+            "size", usersPage.getSize(),
+            "totalElements", usersPage.getTotalElements(),
+            "totalPages", usersPage.getTotalPages()
+        );
 
-            // Remove sensitive information
-            List<Map<String, Object>> safeUsers = users.stream()
-                    .map(this::createSafeUserResponse)
-                    .collect(Collectors.toList());
+        return ResponseEntity.ok(paged);
 
-            return ResponseEntity.ok(safeUsers);
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to fetch users: " + e.getMessage()));
-        }
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(Map.of("error", "Failed to fetch users: " + e.getMessage()));
+    }
     }
 
     /**
@@ -69,7 +64,7 @@ public class UserController {
             User user = userService.getUserById(userId);
             Map<String, Object> safeUser = createSafeUserResponse(user);
             return ResponseEntity.ok(safeUser);
-
+        
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", "User not found: " + e.getMessage()));
@@ -95,7 +90,7 @@ public class UserController {
                     .body(Map.of("error", "Failed to fetch profile: " + e.getMessage()));
         }
     }
-
+    
     /**
      * Any authenticated user: Update own profile
      */
