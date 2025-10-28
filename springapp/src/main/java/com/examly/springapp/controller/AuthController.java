@@ -53,7 +53,7 @@ public class AuthController {
             String appUrl = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
             String verifyLink = appUrl + "/api/auth/verify?token=" + saved.getVerificationToken();
             System.out.println("Verification link: " + verifyLink); // For debugging
-            emailService.sendVerificationEmail(saved.getEmail(), verifyLink);
+            // emailService.sendVerificationEmail(saved.getEmail(), verifyLink);
             
             return ResponseEntity.ok(Map.of(
                     "message", "Registration successful! Please verify your email to activate your account."
@@ -70,7 +70,7 @@ public class AuthController {
                     userService.markUserAsVerified(user);
                     try {
                         // Redirect to frontend success page after verification
-                        response.sendRedirect("http://localhost:5173/email-verified");
+                        response.sendRedirect("https://mobileplanmanagement.web.app/email-verified");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
